@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<constraint-mapping xmlns="http://symfony.com/schema/dic/constraint-mapping"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping http://symfony.com/schema/dic/constraint-mapping/constraint-mapping-1.0.xsd">
+
+    <class name="AppBundle\Entity\Task">
+        <property name="name">
+            <constraint name="NotBlank"/>
+        </property>
+        <property name="importance">
+            <constraint name="NotBlank"/>
+            <constraint name="Type">
+                <option name="type">integer</option>
+                <option name="message">The value {{ value }} is not a valid {{ type }}.</option>
+            </constraint>
+        </property>
+        <property name="status">
+            <constraint name="NotBlank"/>
+            <constraint name="Choice">
+                <option name="callback">getStatuses</option>
+            </constraint>
+        </property>
+    </class>
+</constraint-mapping>

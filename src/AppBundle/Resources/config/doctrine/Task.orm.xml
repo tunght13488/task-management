@@ -5,7 +5,7 @@
             <generator strategy="AUTO"/>
         </id>
         <field name="name" type="string" column="name" length="255"/>
-        <field name="description" type="text" column="description"/>
+        <field name="description" type="text" column="description" nullable="true"/>
         <field name="importance" type="integer" column="importance"/>
         <field name="status" type="smallint" column="status"/>
     </entity>

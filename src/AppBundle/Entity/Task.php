@@ -131,7 +131,7 @@ class Task
      */
     public function setStatus($status)
     {
-        if (!in_array($status, array(self::STATUS_OPEN, self::STATUS_PROGRESS, self::STATUS_DONE))) {
+        if (!in_array($status, self::getStatuses())) {
             throw new InvalidStatusException('Status is invalid');
         }
 
@@ -148,5 +148,14 @@ class Task
     public function getStatus()
     {
         return $this->status;
+    }
+
+    public static function getStatuses()
+    {
+        return array(
+            self::STATUS_OPEN,
+            self::STATUS_PROGRESS,
+            self::STATUS_DONE,
+        );
     }
 }
