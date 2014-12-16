@@ -89,7 +89,13 @@ class TaskController extends Controller
     public function deleteAction($id)
     {
         $em = $this->getDoctrine()->getManager();
-        $em->remove($id);
+        /** @var Task $task */
+        $task = $em->getRepository('AppBundle:Task')->find($id);
+        if (!$task) {
+            throw $this->createNotFoundException('Task not found. ID: '.$id);
+        }
+        $em->remove($task);
+        $em->flush();
 
         return $this->redirect($this->generateUrl('app.task.index'));
     }
