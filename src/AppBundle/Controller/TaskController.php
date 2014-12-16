@@ -2,6 +2,9 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\Entity\Repository\TaskRepository;
+use AppBundle\Entity\Task;
+use AppBundle\Form\TaskType;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -11,7 +14,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
  *
  * @package AppBundle\Controller
  *
- * @Route("/tasks")
+ * @Route("/")
  */
 class TaskController extends Controller
 {
@@ -21,55 +24,91 @@ class TaskController extends Controller
      */
     public function indexAction()
     {
-        return $this->render('AppBundle:Task:index.html.twig');
-    }
+        /** @var TaskRepository $repository */
+        $repository = $this->getDoctrine()->getRepository('AppBundle:Task');
+        $tasks = $repository->findAll();
 
-    /**
-     * @Route("/new", name="app.task.new")
-     * @Method("GET")
-     */
-    public function newAction()
-    {
-        return $this->render('AppBundle:Task:new.html.twig');
-    }
-
-    /**
-     * @Route("/create", name="app.task.create")
-     * @Method("POST")
-     */
-    public function createAction()
-    {
-        $id = 123;
-
-        return $this->redirect($this->generateUrl('app.task.edit', array('id' => $id)));
-    }
-
-    /**
-     * @Route("/{id}", name="app.task.edit")
-     * @Method("GET")
-     */
-    public function editAction($id)
-    {
-        return $this->render('AppBundle:Task:edit.html.twig', array(
-            'id' => $id,
+        return $this->render('AppBundle:Task:index.html.twig', array(
+            'tasks' => $tasks,
         ));
     }
 
     /**
-     * @Route("/{id}/update", name="app.task.update")
-     * @Method("POST")
+     * @Route("/new", name="app.task.new")
      */
-    public function updateAction($id)
+    public function newAction()
     {
-        return $this->redirect($this->generateUrl('app.task.edit', array('id' => $id)));
+        $task = new Task();
+
+        $form = $this->createForm(new TaskType(), $task);
+        $form->handleRequest($this->getRequest());
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($task);
+            $em->flush();
+
+            return $this->redirect($this->generateUrl('app.task.edit', array('id' => $task->getId())));
+        }
+
+        return $this->render('AppBundle:Task:form.html.twig', array(
+            'title' => 'Create new task',
+            'form' => $form->createView(),
+        ));
+    }
+
+    /**
+     * @Route("/{id}", name="app.task.edit")
+     */
+    public function editAction($id)
+    {
+        $em = $this->getDoctrine()->getManager();
+
+        $task = $em->getRepository('AppBundle:Task')->find($id);
+        if (!$task) {
+            throw $this->createNotFoundException('Task not found. ID: '.$id);
+        }
+
+        $form = $this->createForm(new TaskType(), $task);
+        $form->handleRequest($this->getRequest());
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em->flush();
+
+            return $this->redirect($this->generateUrl('app.task.edit', array('id' => $task->getId())));
+        }
+
+        return $this->render('AppBundle:Task:form.html.twig', array(
+            'title' => 'Edit task '.$id,
+            'form' => $form->createView(),
+        ));
     }
 
     /**
      * @Route("/{id}/delete", name="app.task.delete")
-     * @Method("DELETE")
+     * @Method("GET")
      */
     public function deleteAction($id)
     {
+        $em = $this->getDoctrine()->getManager();
+        $em->remove($id);
+
+        return $this->redirect($this->generateUrl('app.task.index'));
+    }
+
+    /**
+     * @Route("/{id}/status/{status}", name="app.task.status")
+     */
+    public function statusAction($id, $status)
+    {
+        $em = $this->getDoctrine()->getManager();
+
+        /** @var Task $task */
+        $task = $em->getRepository('AppBundle:Task')->find($id);
+        if (!$task) {
+            throw $this->createNotFoundException('Task not found. ID: '.$id);
+        }
+        $task->setStatus($status);
+        $em->flush();
+
         return $this->redirect($this->generateUrl('app.task.index'));
     }
 }
